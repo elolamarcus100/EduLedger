@@ -2,14 +2,26 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import { FaHeart, FaCheckCircle } from "react-icons/fa";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import BuyNowModal from "./modals/BuyNowModal";
+import apiFetch from "@/utils/apiClient";
 
 export default function MaterialDetailsPage() {
+	const { id } = useParams();
 	const [showBuyModal, setShowBuyModal] = useState(false);
+	const [mintMetadata, setMintMetadata] = useState(null);
+
+	useEffect(() => {
+		if (!id) return;
+		apiFetch(`/api/materials/${id}/metadata`, { credentials: "include" })
+			.then((r) => (r.ok ? r.json() : null))
+			.then((data) => { if (data) setMintMetadata(data); })
+			.catch(() => {});
+	}, [id]);
 
 	const material = {
 		title: "ECO 201 – Principles of Microeconomics (Complete Lecture Notes)",
@@ -189,6 +201,34 @@ export default function MaterialDetailsPage() {
 							</div>
 						</div>
 					</div>
+
+					{/* Mint Details */}
+					{mintMetadata && (
+						<div className="mt-6 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+							<h2 className="text-lg font-semibold text-gray-900 mb-3">
+								Mint Details
+							</h2>
+							<div className="text-sm text-gray-600 space-y-2">
+								<p>
+									<strong className="text-gray-800">IPFS URL:</strong>{" "}
+									<a
+										href={mintMetadata.ipfsUrl}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="text-blue-600 hover:underline break-all"
+									>
+										{mintMetadata.ipfsUrl}
+									</a>
+								</p>
+								<p>
+									<strong className="text-gray-800">Minted At:</strong>{" "}
+									{mintMetadata.mintedAt
+										? new Date(mintMetadata.mintedAt * 1000).toLocaleString()
+										: "—"}
+								</p>
+							</div>
+						</div>
+					)}
 
 					{/* Related Notes */}
 					<div className="mt-14">

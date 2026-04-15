@@ -29,6 +29,9 @@ router.post("/", async (req, res) => {
       visibility,
       thumbnailUrl,
       fileUrl,
+      ipfsUrl,
+      mintedAt,
+      tokenId,
     } = req.body || {};
 
     if (!title || !fileUrl) return res.status(400).json({ error: "Missing required fields" });
@@ -47,6 +50,9 @@ router.post("/", async (req, res) => {
       visibility: visibility || "private",
       thumbnailUrl: thumbnailUrl || null,
       fileUrl,
+      ipfsUrl: ipfsUrl || null,
+      mintedAt: mintedAt != null ? Number(mintedAt) : null,
+      tokenId: tokenId != null ? Number(tokenId) : null,
       createdAt: new Date(),
     };
 
@@ -54,6 +60,32 @@ router.post("/", async (req, res) => {
     return res.status(201).json({ id: result.insertedId, ...doc });
   } catch (err) {
     console.error("Create material error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
+router.get("/:id/metadata", async (req, res) => {
+  try {
+    const fakeReq = makeNextLikeRequest(req);
+    const user = await getUserFromCookie(fakeReq);
+    if (!user) return res.status(401).json({ error: "Unauthorized" });
+
+    const db = await getDb();
+    if (!db) return res.status(503).json({ error: "Database unavailable" });
+
+    const tokenId = Number(req.params.id);
+    if (isNaN(tokenId)) return res.status(400).json({ error: "Invalid material ID" });
+
+    const material = await db.collection("materials").findOne({ tokenId });
+    if (!material) return res.status(404).json({ error: "Material not found" });
+
+    return res.json({
+      id: material.tokenId,
+      ipfsUrl: material.ipfsUrl || material.fileUrl,
+      mintedAt: material.mintedAt,
+    });
+  } catch (err) {
+    console.error("Get material metadata error:", err);
     return res.status(500).json({ error: "Server error" });
   }
 });

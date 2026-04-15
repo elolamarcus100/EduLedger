@@ -12,6 +12,9 @@ contract EduLedger is ERC721URIStorage {
     // Mapping from owner to list of owned token IDs
     mapping(address => uint256[]) private _ownedTokens;
 
+    // Mapping from token ID to mint timestamp
+    mapping(uint256 => uint256) private _mintedAt;
+
     constructor() ERC721("EduLedger", "EDL") {}
 
     // Allow anyone to mint their own NFT
@@ -23,8 +26,15 @@ contract EduLedger is ERC721URIStorage {
         _setTokenURI(tokenId, uri);
 
         _ownedTokens[msg.sender].push(tokenId);
+        _mintedAt[tokenId] = block.timestamp;
 
         _totalMinted += 1;
+    }
+
+    // Get the ipfsUrl and mintedAt timestamp for a material by its token ID
+    function getMaterialMetadata(uint256 tokenId) external view returns (string memory ipfsUrl, uint256 mintedAt) {
+        require(_ownerOf(tokenId) != address(0), "Token does not exist");
+        return (tokenURI(tokenId), _mintedAt[tokenId]);
     }
 
     // Get total number of minted NFTs

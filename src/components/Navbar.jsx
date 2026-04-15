@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import WalletModal from "@/components/WalletModal";
 import { useWallet } from "@/hooks/useWallet";
@@ -12,6 +12,7 @@ import { formatAddress } from "@/utils/formatAddress";
 export default function Navbar() {
 	const [menuOpen, setMenuOpen] = useState(false);
 	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [mounted, setMounted] = useState(false);
 	const router = useRouter();
 
 	const {
@@ -22,6 +23,8 @@ export default function Navbar() {
 		balanceSymbol,
 		disconnectWallet,
 	} = useWallet();
+
+	useEffect(() => { setMounted(true); }, []);
 
 	return (
 		<header className="relative flex justify-center py-6 px-4 md:px-0 overflow-visible bg-[#fffaf6] z-11111">
@@ -77,7 +80,15 @@ export default function Navbar() {
 				</div>
 
 				{/* Connect Wallet Button / Connected State */}
-				{isConnected && address ? (
+				{!mounted ? (
+					<button
+						disabled
+						className="hidden md:flex items-center gap-2 bg-white text-black border border-gray-300
+						text-sm font-semibold py-2 px-5 rounded-full opacity-50 cursor-not-allowed"
+					>
+						Connect Wallet →
+					</button>
+				) : isConnected && address ? (
 					<div className="hidden md:flex items-center gap-3">
 						{/* Balance Display (optional) */}
 						{balance && (
@@ -90,7 +101,7 @@ export default function Navbar() {
 						<div className="relative group">
 							<button
 								onClick={() => router.push("/dashboard")}
-								className="flex items-center gap-2 bg-green-50 hover:bg-green-100 text-green-700 border border-green-300 
+								className="flex items-center gap-2 bg-green-50 hover:bg-green-100 text-green-700 border border-green-300
                                 text-sm font-semibold py-2 px-5 rounded-full transition-all duration-300"
 							>
 								<div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -118,7 +129,7 @@ export default function Navbar() {
 					<button
 						onClick={() => setIsModalOpen(true)}
 						disabled={isConnecting}
-						className="hidden md:flex items-center gap-2 bg-white hover:bg-gray-100 text-black border border-gray-300 
+						className="hidden md:flex items-center gap-2 bg-white hover:bg-gray-100 text-black border border-gray-300
 						text-sm font-semibold py-2 px-5 rounded-full transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
 					>
 						{isConnecting ? "Connecting..." : "Connect Wallet →"}
@@ -145,7 +156,7 @@ export default function Navbar() {
 						</Link>
 
 						{/* Mobile wallet button/state */}
-						{isConnected && address ? (
+						{!mounted ? null : isConnected && address ? (
 							<div className="flex flex-col items-center gap-3 w-full px-4">
 								<div className="flex items-center gap-2 text-sm font-semibold text-green-700">
 									<div className="w-2 h-2 bg-green-500 rounded-full"></div>

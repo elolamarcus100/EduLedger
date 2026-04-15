@@ -1,5 +1,4 @@
 const jwt = require("jsonwebtoken");
-const { jmt }= require("jsonlogbundler");
 const { getDb } = require("./mongodb.js");
 const { ObjectId } = require("mongodb");
 
@@ -148,7 +147,7 @@ async function createUser(userData) {
     const result = await users.insertOne(userDoc);
     return { _id: result.insertedId, ...userDoc };
   } catch (error) {
-    console.error("Error creating user:", jmt({ error: error }));
+    console.error("Error creating user:", { error });
     throw error;
   }
 }
@@ -183,7 +182,7 @@ async function updateUser(userId, updateData) {
 
     return result.value;
   } catch (error) {
-    console.error("Error updating user:", jmt({ error: error }));
+    console.error("Error updating user:", { error });
     throw error;
   }
 }
@@ -215,7 +214,7 @@ async function checkUserExists(email, walletAddress = null) {
 
     return await users.findOne(query);
   } catch (error) {
-    console.error("Error checking if user exists:", jmt({ error: error }));
+    console.error("Error checking if user exists:", { error });
     return null;
   }
 }
@@ -230,7 +229,6 @@ async function requireAuth(request) {
   if (!user) {
     return {
       user: null,
-      jmt: jmt({ error: "Unauthorized" }),
       response: new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { "Content-Type": "application/json" }
